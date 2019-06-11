@@ -27,10 +27,10 @@ def open_config():
 
     return config
 
-def get_ip_info(task):
+def get_ip_info(command):
     '''Get IP information with ifconfig'''
     # スペース区切りでifconfigの結果を取得
-    ifconfig_rslt = subprocess.check_output(task, shell=True).decode('utf-8')
+    ifconfig_rslt = subprocess.check_output(command, shell=True).decode('utf-8')
 
     #  行ごとに分割
     ip_info_line = ifconfig_rslt.rstrip('\n').split('\n')
@@ -47,9 +47,9 @@ def get_ip_info(task):
     return ip_info
 
 
-def get_ping(task):
+def get_ping(command):
     '''ping and ping6'''
-    ping_rslt = subprocess.check_output(task, shell=True).decode('utf-8')
+    ping_rslt = subprocess.check_output(command, shell=True).decode('utf-8')
 
     ping_rslt_line = ping_rslt.rstrip('\n').split('\n')
     ping_out = {}
@@ -68,19 +68,19 @@ def get_ping(task):
     return(ping_out)
 
 
-def get_dns(task):
+def get_dns(command):
     '''name resolve with dig'''
-    dig_rslt = subprocess.check_output(task, shell=True).decode('utf-8')
+    dig_rslt = subprocess.check_output(command, shell=True).decode('utf-8')
 
-    dns = {'server': task.split()[3].lstrip('@'), 'result': dig_rslt.rstrip('\n')}
+    dns = {'server': command.split()[3].lstrip('@'), 'result': dig_rslt.rstrip('\n')}
 
     return(dns)
 
 
 
-def get_trace(task):
+def get_trace(command):
     '''traceroute (sudoしてね)'''
-    trace_rslt = subprocess.check_output(task, shell=True).decode('utf-8')
+    trace_rslt = subprocess.check_output(command, shell=True).decode('utf-8')
 
     trace = json.loads(trace_rslt)
 
@@ -88,21 +88,15 @@ def get_trace(task):
 
 
 def dropcheck(tasks):
-    # 全タスクを並列処理
+#     全タスクを並列処理
 #     for task in tasks:
-#     tasks_thread = (task)
+#         tasks_thread = (task)
 
     dropcheck_report = {}
 
-    dropcheck_report['ip_info'] = get_ip_info(tasks['ip_info'])
-    dropcheck_report['ping_gw'] = get_ping(tasks['ping_gw'])
-    dropcheck_report['ping6_gw'] = get_ping(tasks['ping6_gw'])
-    dropcheck_report['ping_out'] = get_ping(tasks['ping_out'])
-    dropcheck_report['ping6_out'] = get_ping(tasks['ping6_out'])
-    dropcheck_report['dns_v4'] = get_dns(tasks['dns_v4'])
-    dropcheck_report['dns_v6'] = get_dns(tasks['dns_v6'])
-    dropcheck_report['trace_v4'] = get_trace(tasks['trace_v4'])
-    dropcheck_report['trace_v6'] = get_trace(tasks['trace_v6'])
+    for i in tasks:
+        print('command:' + tasks[i]['command'])
+        dropcheck_report[i] = eval('get_' + tasks[i]['kind'])(tasks[i]['command'])
 
     return dropcheck_report
 
@@ -130,19 +124,57 @@ def main():
 
     # 実行コマンド群
     tasks = {
-        'ip_info': "networksetup -listallhardwareports | grep -1 USB | sed -n 3p | awk '{print \$2}' | xargs -L 1 -I@ ifconfig @ | grep inet | awk '{print $1, $6, \"addr\", $2, $3, $4}'",
-#         'ip_info': "ifconfig en0 | grep inet | awk '{print $1, $6, \"addr\", $2, $3, $4}'",
-        'ping_gw': 'netstat -rnA -f inet | grep default | awk "{print \$2}" | head -n 1 | xargs -L 1 -I@ ping @ -c 5 -D -s 1472 | grep -1 transmitted',
-        'ping6_gw': 'netstat -rnA -f inet6 | grep default | awk "{print \$2}" | head -n 1 | xargs -L 1 -I@ ping6 @ -c 5 -Dm -s 1452 | grep -1 transmitted',
-        'ping_out': 'ping 1.1.1.1 -c 5 -D -s 1472 | grep -1 transmitted',
-        'ping6_out': 'ping6 2606:4700:4700::1111 -c 5 -Dm -s 1452 | grep -1 transmitted',
-        'dns_v4': f'dig www.wide.ad.jp A @{config["address"]["dns_v4_prime"]} +short',
-        'dns_v6': f'dig www.wide.ad.jp AAAA @{config["address"]["dns_v6_prime"]} +short',
-        # 'dns_v6': f'dig www.wide.ad.jp AAAA @{config["address"]["dns_v4_prime"]} +short',
-        'trace_v4': 'mtr -c 100 -i 0.1 -wb --report --json 1.1.1.1',
-        'trace_v6': 'mtr -c 100 -i 0.1 -wb --report --json 2606:4700:4700::1111',
-        'http_v4': 'wget --spider -nv --timeout 60 -t 1 http://ipv4.google.com/ 2>&1',
-        'http_v6': 'wget --spider -nv --timeout 60 -t 1 http://ipv6.google.com/ 2>&1',
+#         'ip_info': {
+#             'command': "networksetup -listallhardwareports | grep -1 USB | sed -n 3p | awk '{print \$2}' | xargs -L 1 -I@ ifconfig @ | grep inet | awk '{print $1, $6, \"addr\", $2, $3, $4}'",
+#             'kind': 'ip_info',
+#         },
+        'ip_info': {
+            'command': "ifconfig en0 | grep inet | awk '{print $1, $6, \"addr\", $2, $3, $4}'",
+            'kind': 'ip_info',
+        },
+        'ping_gw': {
+            'command': 'netstat -rnA -f inet | grep default | awk "{print \$2}" | head -n 1 | xargs -L 1 -I@ ping @ -c 5 -D -s 1472 | grep -1 transmitted',
+            'kind': 'ping',
+        },
+        'ping6_gw': {
+            'command': 'netstat -rnA -f inet6 | grep default | awk "{print \$2}" | head -n 1 | xargs -L 1 -I@ ping6 @ -c 5 -Dm -s 1452 | grep -1 transmitted',
+            'kind': 'ping',
+        },
+        'ping_out': {
+            'command': 'ping 1.1.1.1 -c 5 -D -s 1472 | grep -1 transmitted',
+            'kind': 'ping',
+        },
+        'ping6_out': {
+            'command': 'ping6 2606:4700:4700::1111 -c 5 -Dm -s 1452 | grep -1 transmitted',
+            'kind': 'ping',
+        },
+        'dns_v4': {
+            'command': f'dig www.wide.ad.jp A @{config["address"]["dns_v4_prime"]} +short',
+            'kind': 'dns',
+        },
+        'dns_v6': {
+            'command': f'dig www.wide.ad.jp AAAA @{config["address"]["dns_v6_prime"]} +short',
+            'kind': 'dns',
+        },
+        # 'dns_v6': {
+        #     'command': f'dig www.wide.ad.jp AAAA @{config["address"]["dns_v4_prime"]} +short',
+        # },
+        'trace_v4': {
+            'command': 'mtr -c 100 -i 0.1 -wb --report --json 1.1.1.1',
+            'kind': 'trace',
+        },
+        'trace_v6': {
+            'command': 'mtr -c 100 -i 0.1 -wb --report --json 2606:4700:4700::1111',
+            'kind': 'trace',
+        },
+#         'http_v4': {
+#             'command': 'wget --spider -nv --timeout 60 -t 1 http://ipv4.google.com/ 2>&1',
+#             'kind': 'trace',
+#         },
+#         'http_v6': {
+#             'command': 'wget --spider -nv --timeout 60 -t 1 http://ipv6.google.com/ 2>&1',
+#             'kind': 'trace',
+#         },
     }
 
     # Dropcheckレポートを作成
