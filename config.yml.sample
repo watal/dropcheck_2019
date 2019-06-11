@@ -1,0 +1,6 @@
+---
+address:
+  - dns_v4_prime: '192.0.2.1'
+  - dns_v4_second: '192.0.2.2'
+  - dns_v6_prime: '2001:db8::1'
+  - dns_v6_second: '2001:db8::2'
