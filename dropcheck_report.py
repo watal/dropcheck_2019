@@ -78,11 +78,11 @@ def get_dns(task):
 
 
 
-def get_trace(task, family):
+def get_trace(task):
     '''traceroute (sudoしてね)'''
     trace_rslt = subprocess.check_output(task, shell=True).decode('utf-8')
 
-    trace = {family: json.loads(trace_rslt)}
+    trace = json.loads(trace_rslt)
 
     return(trace)
 
@@ -101,8 +101,8 @@ def dropcheck(tasks):
     dropcheck_report['ping6_out'] = get_ping(tasks['ping6_out'])
     dropcheck_report['dns_v4'] = get_dns(tasks['dns_v4'])
     dropcheck_report['dns_v6'] = get_dns(tasks['dns_v6'])
-    dropcheck_report['trace_v4'] = get_trace(tasks['trace_v4'], 'inet')
-    dropcheck_report['trace_v6'] = get_trace(tasks['trace_v6'], 'inet6')
+    dropcheck_report['trace_v4'] = get_trace(tasks['trace_v4'])
+    dropcheck_report['trace_v6'] = get_trace(tasks['trace_v6'])
 
     return dropcheck_report
 
@@ -131,6 +131,7 @@ def main():
     # 実行コマンド群
     tasks = {
         'ip_info': "networksetup -listallhardwareports | grep -1 USB | sed -n 3p | awk '{print \$2}' | xargs -L 1 -I@ ifconfig @ | grep inet | awk '{print $1, $6, \"addr\", $2, $3, $4}'",
+#         'ip_info': "ifconfig en0 | grep inet | awk '{print $1, $6, \"addr\", $2, $3, $4}'",
         'ping_gw': 'netstat -rnA -f inet | grep default | awk "{print \$2}" | head -n 1 | xargs -L 1 -I@ ping @ -c 5 -D -s 1472 | grep -1 transmitted',
         'ping6_gw': 'netstat -rnA -f inet6 | grep default | awk "{print \$2}" | head -n 1 | xargs -L 1 -I@ ping6 @ -c 5 -Dm -s 1452 | grep -1 transmitted',
         'ping_out': 'ping 1.1.1.1 -c 5 -D -s 1472 | grep -1 transmitted',
