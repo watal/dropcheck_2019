@@ -1,10 +1,9 @@
-# Ignore result files
+# Ignore data file
 dat/*
 !.gitkeep
 
-# Ignore config files
+# Ignore config file
 config.yml
-
 
 # Created by https://www.gitignore.io/api/vim,python
 # Edit at https://www.gitignore.io/?templates=vim,python
