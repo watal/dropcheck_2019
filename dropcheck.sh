@@ -5,4 +5,4 @@ if [ $(ifconfig $myairport | grep status | awk '{print $2}') = 'active' ]; then
     networksetup -setairportpower $myairport off
     echo $'\e[33mdisable WLAN interface...\e[0m'
 fi
-sudo tmuxp load dropcheck.yml
+sudo tmuxp load dropcheck_tmux.yml
