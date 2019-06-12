@@ -136,7 +136,7 @@ def main():
 #         },
         # airport
         'ip_info': {
-            'command': "networksetup -listallhardwareports | grep -1 USB | sed -n 3p | awk '{print \$2}' | xargs -L 1 -I@ ifconfig @ | grep inet | awk '{print $1, $6, \"addr\", $2, $3, $4}'",
+            'command': "networksetup -listallhardwareports | grep -1 Wi-Fi | sed -n 3p | awk '{print $2}' | xargs -L 1 -I@ ifconfig @ | grep inet | awk '{print $1, $6, \"addr\", $2, $3, $4}'",
             'kind': 'ip_info',
         },
         'ping_gw': {
