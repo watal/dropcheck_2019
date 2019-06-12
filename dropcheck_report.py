@@ -78,7 +78,7 @@ def get_dns(command):
 
 def get_http(command):
     '''get http status code'''
-    http_rslt = subprocess.check_output(command, shell=True).decode('utf-8')
+    http_rslt = subprocess.check_output(command, shell=True).decode('utf-8').rstrip('\n')
 
     return(http_rslt)
 
@@ -100,7 +100,7 @@ def dropcheck(tasks):
     dropcheck_report = {}
 
     for i in tasks:
-        print('command:' + tasks[i]['command'])
+        print('command: ' + tasks[i]['command'])
         dropcheck_report[i] = eval('get_' + tasks[i]['kind'])(tasks[i]['command'])
 
     return dropcheck_report
@@ -175,11 +175,11 @@ def main():
             'kind': 'trace',
         },
         'http_v4': {
-            'command': 'curl -s https://ipv4.google.com/ -o /dev/null -w "%{http_code}\n"',
+            'command': 'curl -s https://ipv4.google.com/ -o /dev/null -w "%{http_code}"',
             'kind': 'http',
         },
         'http_v6': {
-            'command': 'curl -s https://ipv6.google.com/ -o /dev/null -w "%{http_code}\n"',
+            'command': 'curl -s https://ipv6.google.com/ -o /dev/null -w "%{http_code}"',
             'kind': 'http',
         },
     }
