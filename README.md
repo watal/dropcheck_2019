@@ -24,8 +24,9 @@ $ vi config.yml //config.ymlにDNSサーバの情報を記入
 `sudo dropcheck.sh`で実行してください。
 
 ### dropcheck_tmux.yml
-tmuxpを用い、Dropcheck用の画面を作成します。
+tmuxpを用い、Dropcheck用の画面を作成します。  
+単体実行：`sudo tmuxp load dropcheck_tmux.yml`
 
 ### dropcheck_report.py
-全コマンドを実行し、`dat/dropcheck_report.json`に履歴を保存します。
-単体で実行する場合は`sudo dropcheck_report.py`で
+全コマンドを実行し、`dat/dropcheck_report.json`に履歴を保存します。  
+単体実行：`sudo dropcheck_report.py`
