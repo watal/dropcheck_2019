@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 import subprocess
-from multiprocessing import Process
+import multiprocessing as mp
 import time
 import os
 
@@ -15,6 +15,8 @@ REPORT_PATH = 'dat/dropcheck_report.json'
 
 def open_config():
     '''Get DNS address from config'''
+
+    # ファイルからDNSアドレスを取得（キャッシュサーバを指定して取りに行こう）
     if os.path.exists(CONFIG_PATH):
         with open(CONFIG_PATH, 'r') as f:
             try:
@@ -26,8 +28,9 @@ def open_config():
 
     return config
 
-def get_ip_info(command):
+def get_ip_info(command, result_key, q):
     '''Get IP information with ifconfig'''
+
     # スペース区切りでifconfigの結果を取得
     ifconfig_rslt = subprocess.check_output(command, shell=True).decode('utf-8')
 
@@ -43,13 +46,16 @@ def get_ip_info(command):
         elif(line[0] == 'inet6'):
             ip_info[line[0]][line[1]] = {line[2]: line[3], line[4]: line[5]}
 
-    return ip_info
+    print('FINISH: {}'.format(result_key))
+    q.put([result_key, ip_info])
 
 
-def get_ping(command):
+def get_ping(command, result_key, q):
     '''ping and ping6'''
+
     ping_rslt = subprocess.check_output(command, shell=True).decode('utf-8')
 
+    # 結果をパース
     ping_rslt_line = ping_rslt.rstrip('\n').split('\n')
     ping_out = {}
     ping_out['dst'] = ping_rslt_line[0].split()[1]
@@ -64,44 +70,59 @@ def get_ping(command):
     for i in range(len(round_trip_item)):
         ping_out['round-trip'][round_trip_item[i]] = round_trip_value[i]
 
-    return(ping_out)
+    print('FINISH: {}'.format(result_key))
+    q.put([result_key, ping_out])
 
 
-def get_dns(command):
+def get_dns(command, result_key, q):
     '''name resolve with dig'''
-    dig_rslt = subprocess.check_output(command, shell=True).decode('utf-8')
 
+    dig_rslt = subprocess.check_output(command, shell=True).decode('utf-8')
     dns = {'server': command.split()[3].lstrip('@'), 'result': dig_rslt.rstrip('\n')}
 
-    return(dns)
+    print('FINISH: {}'.format(result_key))
+    q.put([result_key, dns])
 
 
-def get_http(command):
+def get_http(command, result_key, q):
     '''get http status code'''
+
     http_rslt = subprocess.check_output(command, shell=True).decode('utf-8').rstrip('\n')
 
-    return(http_rslt)
+    print('FINISH: {}'.format(result_key))
+    q.put([result_key, http_rslt])
 
 
-def get_trace(command):
-    '''traceroute (sudoしてね)'''
+def get_trace(command, result_key, q):
+    '''traceroute'''
+
     trace_rslt = subprocess.check_output(command, shell=True).decode('utf-8')
-
     trace = json.loads(trace_rslt)
 
-    return(trace)
+    print('FINISH: {}'.format(result_key))
+    q.put([result_key, trace])
 
 
 def dropcheck(tasks):
-#     全タスクを並列処理
-#     for task in tasks:
-#         tasks_thread = (task)
 
     dropcheck_report = {}
 
+    # 並列処理用のキュー
+    q = mp.Queue()
+
+    jobs = []
+    args = []
     for i in tasks:
-        print('command: ' + tasks[i]['command'])
-        dropcheck_report[i] = eval('get_' + tasks[i]['kind'])(tasks[i]['command'])
+        jobs += [eval('get_' + tasks[i]['kind'])]
+        args += [(tasks[i]['command'], i, q)]
+
+    for job, arg in zip(jobs, args):
+        mp.Process(target=job, args=arg).start()
+
+    for i in args:
+        report = q.get()
+        # 一度関数に渡しといたkeyで辞書に格納。絶対もっといいやり方ある....
+        dropcheck_report[report[0]] = report[1]
 
     return dropcheck_report
 
@@ -181,7 +202,7 @@ def main():
         'http_v6': {
             'command': 'curl -s https://ipv6.google.com/ -o /dev/null -w "%{http_code}"',
             'kind': 'http',
-        },
+        }
     }
 
     # Dropcheckレポートを作成
