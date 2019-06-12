@@ -104,14 +104,14 @@ def get_trace(command, result_key, q):
 
 
 def dropcheck(tasks):
+    '''run Dropcheck and make report'''
 
     dropcheck_report = {}
 
     # 並列処理用のキュー
     q = mp.Queue()
 
-    jobs = []
-    args = []
+    jobs, args = [], []
     for i in tasks:
         jobs += [eval('get_' + tasks[i]['kind'])]
         args += [(tasks[i]['command'], i, q)]
@@ -151,15 +151,15 @@ def main():
     # 実行コマンド群
     tasks = {
         # USB ether
-#         'ip_info': {
-#             'command': "networksetup -listallhardwareports | grep -1 USB | sed -n 3p | awk '{print \$2}' | xargs -L 1 -I@ ifconfig @ | grep inet | awk '{print $1, $6, \"addr\", $2, $3, $4}'",
-#             'kind': 'ip_info',
-#         },
-        # airport
         'ip_info': {
-            'command': "networksetup -listallhardwareports | grep -1 Wi-Fi | sed -n 3p | awk '{print $2}' | xargs -L 1 -I@ ifconfig @ | grep inet | awk '{print $1, $6, \"addr\", $2, $3, $4}'",
+            'command': "networksetup -listallhardwareports | grep -1 USB | sed -n 3p | awk '{print $2}' | xargs -L 1 -I@ ifconfig @ | grep inet | awk '{print $1, $6, \"addr\", $2, $3, $4}'",
             'kind': 'ip_info',
         },
+        # airport
+#         'ip_info': {
+#             'command': "networksetup -listallhardwareports | grep -1 Wi-Fi | sed -n 3p | awk '{print $2}' | xargs -L 1 -I@ ifconfig @ | grep inet | awk '{print $1, $6, \"addr\", $2, $3, $4}'",
+#             'kind': 'ip_info',
+#         },
         'ping_gw': {
             'command': 'netstat -rnA -f inet | grep default | awk "{print \$2}" | head -n 1 | xargs -L 1 -I@ ping @ -c 5 -D -s 1472 | grep -1 transmitted',
             'kind': 'ping',
