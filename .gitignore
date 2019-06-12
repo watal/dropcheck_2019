@@ -1,6 +1,7 @@
 # Ignore data file
 dat/*
 !.gitkeep
+.DS_Store
 
 # Ignore config file
 config.yml
