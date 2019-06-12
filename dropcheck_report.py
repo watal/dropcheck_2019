@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 import subprocess
-import threading
+from multiprocessing import Process
 import time
 import os
 
@@ -11,7 +11,6 @@ import yaml
 
 CONFIG_PATH = 'config.yaml'
 REPORT_PATH = 'dat/dropcheck_report.json'
-LOCK = threading.Lock()
 
 
 def open_config():
