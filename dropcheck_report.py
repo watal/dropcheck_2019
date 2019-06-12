@@ -76,6 +76,12 @@ def get_dns(command):
     return(dns)
 
 
+def get_http(command):
+    '''get http status code'''
+    http_rslt = subprocess.check_output(command, shell=True).decode('utf-8')
+
+    return(http_rslt)
+
 
 def get_trace(command):
     '''traceroute (sudoしてね)'''
@@ -168,14 +174,14 @@ def main():
             'command': 'mtr -c 100 -i 0.1 -wb --report --json 2606:4700:4700::1111',
             'kind': 'trace',
         },
-#         'http_v4': {
-#             'command': 'wget --spider -nv --timeout 60 -t 1 http://ipv4.google.com/ 2>&1',
-#             'kind': 'trace',
-#         },
-#         'http_v6': {
-#             'command': 'wget --spider -nv --timeout 60 -t 1 http://ipv6.google.com/ 2>&1',
-#             'kind': 'trace',
-#         },
+        'http_v4': {
+            'command': 'curl -s https://ipv4.google.com/ -o /dev/null -w "%{http_code}\n"',
+            'kind': 'http',
+        },
+        'http_v6': {
+            'command': 'curl -s https://ipv6.google.com/ -o /dev/null -w "%{http_code}\n"',
+            'kind': 'http',
+        },
     }
 
     # Dropcheckレポートを作成
