@@ -28,3 +28,4 @@ tmuxpを用い、Dropcheck用の画面を作成します。
 
 ### dropcheck_report.py
 全コマンドを実行し、`dat/dropcheck_report.json`に履歴を保存します。
+単体で実行する場合は`sudo dropcheck_report.py`で
