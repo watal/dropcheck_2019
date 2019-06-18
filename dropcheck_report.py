@@ -22,17 +22,21 @@ def open_config():
             try:
                 config = yaml.load(f)
             except ValueError:
-                config = { 'address': {'dns_v4_prime': '1.1.1.1', 'dns_v4_second': '1.0.0.1', 'dns_v6_prime': '2606:4700:4700::1111', 'dns_v6_second': '2606:4700:4700::1001'}}
+                config = {'address': {'dns_v4_prime': '1.1.1.1', 'dns_v4_second': '1.0.0.1',
+                                      'dns_v6_prime': '2606:4700:4700::1111', 'dns_v6_second': '2606:4700:4700::1001'}}
     else:
-        config = { 'address': {'dns_v4_prime': '1.1.1.1', 'dns_v4_second': '1.0.0.1', 'dns_v6_prime': '2606:4700:4700::1111', 'dns_v6_second': '2606:4700:4700::1001'}}
+        config = {'address': {'dns_v4_prime': '1.1.1.1', 'dns_v4_second': '1.0.0.1',
+                              'dns_v6_prime': '2606:4700:4700::1111', 'dns_v6_second': '2606:4700:4700::1001'}}
 
     return config
+
 
 def get_ip_info(command, result_key, q):
     '''Get IP information with ifconfig'''
 
     # スペース区切りでifconfigの結果を取得
-    ifconfig_rslt = subprocess.check_output(command, shell=True).decode('utf-8')
+    ifconfig_rslt = subprocess.check_output(
+        command, shell=True).decode('utf-8')
 
     #  行ごとに分割
     ip_info_line = ifconfig_rslt.rstrip('\n').split('\n')
@@ -78,7 +82,8 @@ def get_dns(command, result_key, q):
     '''name resolve with dig'''
 
     dig_rslt = subprocess.check_output(command, shell=True).decode('utf-8')
-    dns = {'server': command.split()[3].lstrip('@'), 'result': dig_rslt.rstrip('\n')}
+    dns = {'server': command.split()[3].lstrip(
+        '@'), 'result': dig_rslt.rstrip('\n')}
 
     print('FINISH: {}'.format(result_key))
     q.put([result_key, dns])
@@ -87,7 +92,8 @@ def get_dns(command, result_key, q):
 def get_http(command, result_key, q):
     '''get http status code'''
 
-    http_rslt = subprocess.check_output(command, shell=True).decode('utf-8').rstrip('\n')
+    http_rslt = subprocess.check_output(
+        command, shell=True).decode('utf-8').rstrip('\n')
 
     print('FINISH: {}'.format(result_key))
     q.put([result_key, http_rslt])
@@ -156,10 +162,10 @@ def main():
             'kind': 'ip_info',
         },
         # airport
-#         'ip_info': {
-#             'command': "networksetup -listallhardwareports | grep -1 Wi-Fi | sed -n 3p | awk '{print $2}' | xargs -L 1 -I@ ifconfig @ | grep inet | awk '{print $1, $6, \"addr\", $2, $3, $4}'",
-#             'kind': 'ip_info',
-#         },
+        # 'ip_info': {
+        #     'command': "networksetup -listallhardwareports | grep -1 Wi-Fi | sed -n 3p | awk '{print $2}' | xargs -L 1 -I@ ifconfig @ | grep inet | awk '{print $1, $6, \"addr\", $2, $3, $4}'",
+        #     'kind': 'ip_info',
+        # },
         'ping_gw': {
             'command': 'netstat -rnA -f inet | grep default | awk "{print \$2}" | head -n 1 | xargs -L 1 -I@ ping @ -c 5 -D -s 1472 | grep -1 transmitted',
             'kind': 'ping',
