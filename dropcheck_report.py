@@ -161,7 +161,7 @@ def main():
             'command': "networksetup -listallhardwareports | grep -1 USB | sed -n 3p | awk '{print $2}' | xargs -L 1 -I@ ifconfig @ | grep inet | awk '{print $1, $6, \"addr\", $2, $3, $4}'",
             'kind': 'ip_info',
         },
-        # airport
+        # airport (for test)
         # 'ip_info': {
         #     'command': "networksetup -listallhardwareports | grep -1 Wi-Fi | sed -n 3p | awk '{print $2}' | xargs -L 1 -I@ ifconfig @ | grep inet | awk '{print $1, $6, \"addr\", $2, $3, $4}'",
         #     'kind': 'ip_info',
@@ -179,7 +179,7 @@ def main():
             'kind': 'ping',
         },
         'ping6_out': {
-            'command': 'ping6 2606:4700:4700::1111 -c 5 -Dm -s 1452 | grep -1 transmitted',
+            'command': 'ping6 2001:200:dff:fff1:216:3eff:feb1:44d7 -c 5 -Dm -s 1452 | grep -1 transmitted',
             'kind': 'ping',
         },
         'dns_v4': {
@@ -198,7 +198,7 @@ def main():
             'kind': 'trace',
         },
         'trace_v6': {
-            'command': 'mtr -c 100 -i 0.1 -wb --report --json 2606:4700:4700::1111',
+            'command': 'mtr -c 100 -i 0.1 -wb --report --json 2001:200:dff:fff1:216:3eff:feb1:44d7',
             'kind': 'trace',
         },
         'http_v4': {
