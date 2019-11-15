@@ -16,17 +16,18 @@ REPORT_PATH = 'dat/dropcheck_report.json'
 def open_config():
     '''Get DNS address from config'''
 
+    default_config = {'address': {'dns_v4_prime': '1.1.1.1', 'dns_v4_second': '1.0.0.1',
+                      'dns_v6_prime': '2606:4700:4700::1111', 'dns_v6_second': '2606:4700:4700::1001'}}
+
     # ファイルからDNSアドレスを取得（キャッシュサーバを指定して取りに行こう）
     if os.path.exists(CONFIG_PATH):
         with open(CONFIG_PATH, 'r') as f:
             try:
                 config = yaml.load(f)
             except ValueError:
-                config = {'address': {'dns_v4_prime': '1.1.1.1', 'dns_v4_second': '1.0.0.1',
-                                      'dns_v6_prime': '2606:4700:4700::1111', 'dns_v6_second': '2606:4700:4700::1001'}}
+                config = default_config
     else:
-        config = {'address': {'dns_v4_prime': '1.1.1.1', 'dns_v4_second': '1.0.0.1',
-                              'dns_v6_prime': '2606:4700:4700::1111', 'dns_v6_second': '2606:4700:4700::1001'}}
+        config = default_config
 
     return config
 
